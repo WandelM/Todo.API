@@ -59,7 +59,5 @@ namespace ToDo.API.Services
             var tokenModel = new SecurityToken(tokenHandler.WriteToken(jwtToken), issuedDate, expiresDate);
             return tokenModel;
         }
-
-        
     }
 }

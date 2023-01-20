@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ToDo.Domain.Contexts.EntityConfigurations;
 using ToDo.Domain.Models.Users;
 
 namespace ToDo.Domain.Contexts
@@ -13,28 +14,7 @@ namespace ToDo.Domain.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>().HasKey(u => u.Id);
-            
-            modelBuilder.Entity<User>().Property(u => u.Email)
-                .IsRequired()
-                .HasMaxLength(200);
-
-            modelBuilder.Entity<User>().Property(u => u.Password)
-                .IsRequired()
-                .HasMaxLength(100);
-
-            modelBuilder.Entity<User>().Property(u => u.Role)
-                .IsRequired()
-                .HasMaxLength(100);
-
-            modelBuilder.Entity<User>().Property(u => u.CreateDate)
-                .IsRequired()
-                .HasDefaultValueSql<DateTime>("DATE('now')");
-
-            modelBuilder.Entity<User>().Property(u => u.LastUpdateDate)
-                .IsRequired()
-                .HasDefaultValueSql<DateTime>("DATE('now')")
-                .ValueGeneratedOnUpdate();
+            new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
 
             base.OnModelCreating(modelBuilder);
         }
