@@ -27,6 +27,15 @@ namespace ToDo.Domain.Contexts
                 .IsRequired()
                 .HasMaxLength(100);
 
+            modelBuilder.Entity<User>().Property(u => u.CreateDate)
+                .IsRequired()
+                .HasDefaultValueSql<DateTime>("DATE('now')");
+
+            modelBuilder.Entity<User>().Property(u => u.LastUpdateDate)
+                .IsRequired()
+                .HasDefaultValueSql<DateTime>("DATE('now')")
+                .ValueGeneratedOnUpdate();
+
             base.OnModelCreating(modelBuilder);
         }
     }
