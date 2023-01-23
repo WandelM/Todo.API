@@ -30,6 +30,10 @@ namespace ToDo.Domain.Contexts.EntityConfigurations
                 .IsRequired()
                 .HasDefaultValueSql<DateTime>("DATE('now')")
                 .ValueGeneratedOnUpdate();
+
+            builder.HasMany(u => u.ToDoItems)
+                .WithOne(i => i.User)
+                .HasForeignKey(i => i.UserId);
         }
     }
 }
