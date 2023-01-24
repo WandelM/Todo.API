@@ -9,6 +9,6 @@ namespace ToDo.Domain.Models.Users
         public string Password { get; set; }
         public string Role { get; set; }
 
-        public ICollection<ToDoItem> ToDoItems { get; set; }
+        public ICollection<ToDoItem> ToDoItems { get; set; } = new List<ToDoItem>();
     }
 }

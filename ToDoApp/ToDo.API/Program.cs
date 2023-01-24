@@ -47,6 +47,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UserRegisterValidatior>(Ser
 builder.Services.AddDbContext<ToDoContext>(options => options.UseSqlite("Data Source=ToDoApp.db", sqlOptions => sqlOptions.MigrationsAssembly("ToDo.Domain")));
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IToDoItemsRepository, ToDoItemsRepository>();
 
 
 builder.Services.AddAuthentication("Bearer")
