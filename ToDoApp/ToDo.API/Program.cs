@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
+using ToDo.API.Dtos.ToDoItems;
 using ToDo.API.Dtos.User;
 using ToDo.API.Services;
 using ToDo.Domain.Contexts;
@@ -43,11 +45,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegisterValidatior>(ServiceLifetime.Scoped);
+builder.Services.AddValidatorsFromAssemblyContaining<ToDoItemValidator>(ServiceLifetime.Scoped);
 
 builder.Services.AddDbContext<ToDoContext>(options => options.UseSqlite("Data Source=ToDoApp.db", sqlOptions => sqlOptions.MigrationsAssembly("ToDo.Domain")));
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IToDoItemsRepository, ToDoItemsRepository>();
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 
 builder.Services.AddAuthentication("Bearer")

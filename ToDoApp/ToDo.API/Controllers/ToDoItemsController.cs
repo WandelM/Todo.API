@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ToDo.API.Dtos.ToDoItem;
-using ToDo.API.Services;
+using ToDo.API.Dtos.ToDoItems;
 using ToDo.Domain.Models.ToDoItems;
 using ToDo.Domain.Repositories;
 
@@ -10,37 +10,31 @@ namespace ToDo.API.Controllers
 {
     [Route("api/todoitems")]
     [ApiController]
-    public class ToDoItemsController : ControllerBase
+    public class ToDoItemsController : AppControllerBase
     {
         private readonly IToDoItemsRepository _itemsRepository;
+        private readonly IValidator<ToDoItemCreateDto> _toDoValidator;
+        private readonly IMapper _mapper;
 
-        public ToDoItemsController(IToDoItemsRepository itemsRepository)
+        public ToDoItemsController(IToDoItemsRepository itemsRepository, IValidator<ToDoItemCreateDto> toDoValidator, IMapper mapper)
         {
             _itemsRepository = itemsRepository;
+            _toDoValidator = toDoValidator;
+            _mapper = mapper;
         }
 
         [HttpGet]
         [Authorize]
         public async Task<ActionResult<IReadOnlyList<ToDoItemGetDto>>> GetAllAsync()
         {
-            var userId = User.Claims.First(c => c.Type == ClaimNames.UserId).Value;
+            var userId = GetAuthorizedUserId();
 
-            var items = await _itemsRepository.GetAllItemsAsync(int.Parse(userId));
+            var items = await _itemsRepository.GetAllItemsAsync(userId);
 
             if (!items.Any())
                 return NotFound();
 
-            var mappedItems = items.Select(i =>
-            {
-                return new ToDoItemGetDto()
-                {
-                    Id = i.Id,
-                    Name = i.Name,
-                    Description = i.Description,
-                    DueDate = i.DueDate,
-                    IsDone = i.IsDone
-                };
-            });
+            var mappedItems = _mapper.Map<IReadOnlyList<ToDoItemGetDto>>(items);
 
             return Ok(mappedItems);
         }
@@ -49,15 +43,21 @@ namespace ToDo.API.Controllers
         [Authorize]
         public async Task<IActionResult> CreateAsync(ToDoItemCreateDto toDoItem)
         {
-            var userId = User.Claims.First(c => c.Type == ClaimNames.UserId).Value;
+            var result = await _toDoValidator.ValidateAsync(toDoItem);
 
-            var mappedItem = new ToDoItem()
+            if (!result.IsValid)
             {
-                Name = toDoItem.Name,
-                Description = toDoItem.Description,
-                DueDate = toDoItem.DueDate,
-                UserId = int.Parse(userId)
-            };
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+
+                return BadRequest(ModelState);
+            }
+
+            var userId = GetAuthorizedUserId();
+
+            var mappedItem = _mapper.Map<ToDoItem>(toDoItem, opt => opt.AfterMap((source, dest) => dest.UserId = userId));
 
             _itemsRepository.AddItem(mappedItem);
             await _itemsRepository.SaveChangesAsync();
