@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ToDo.Domain.Contexts;
+using ToDo.Domain.Models;
 using ToDo.Domain.Models.ToDoItems;
 
 namespace ToDo.Domain.Repositories
@@ -13,6 +14,7 @@ namespace ToDo.Domain.Repositories
     {
         Task<IReadOnlyList<ToDoItem>> GetAllItemsAsync(int userId);
         void AddItem(ToDoItem toDoItem);
+        Task<PagedModel<ToDoItem>> GetPaged(int pageSize, int pageNumber);
         Task SaveChangesAsync();
     }
 
@@ -40,6 +42,21 @@ namespace ToDo.Domain.Repositories
         public async Task SaveChangesAsync()
         {
             await _toDoContext.SaveChangesAsync();
+        }
+
+        public async Task<PagedModel<ToDoItem>> GetPaged(int userId, int pageSize, int pageNumber)
+        {
+            var totalCount = _toDoContext.ToDoItems.Count(item => item.UserId == userId);
+
+            if (totalCount == 0)
+                return new PagedModel<ToDoItem>(new List<ToDoItem>(), 0, 0);
+
+            var entities = await _toDoContext.ToDoItems.Where(item => item.UserId == userId)
+                .Skip(pageSize * pageNumber)
+                .Take(pageNumber)
+                .ToListAsync();
+
+            return new PagedModel<ToDoItem>(entities, totalCount, pageSize);
         }
     }
 }
